@@ -29,7 +29,6 @@ def get_time_diff_hours(row):
     - floodmap_date
     - sentinel2_timestamp (if exists) else sentinel_timestamp
     """
-
     flood_dt = parse_timestamp(row["floodmap_date"])
 
     # Prefer sentinel2_timestamp if available

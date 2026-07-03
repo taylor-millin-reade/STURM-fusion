@@ -45,22 +45,26 @@ def check_image_shapes(dir1, dir2):
     }
 
 def get_band_min_max(dir_path):
+    """Compute the global per-band minimum and maximum across all samples"""
     dir_path = Path(dir_path)
 
     band_mins = None
     band_maxs = None
 
+    # iterate over all tif in the dir
     for tif_path in dir_path.glob("*.tif"):
         with rasterio.open(tif_path) as src:
-            data = src.read()  # [C, H, W]
+            data = src.read()  
 
+            # init accumulators on first file
             if band_mins is None:
                 band_mins = np.full(data.shape[0], np.inf)
                 band_maxs = np.full(data.shape[0], -np.inf)
 
+            # update running min/max per band
             for b in range(data.shape[0]):
-                band_mins[b] = min(band_mins[b], np.nanmin(data[b]))
-                band_maxs[b] = max(band_maxs[b], np.nanmax(data[b]))
+                band_mins[b] = min(band_mins[b], np.min(data[b]))
+                band_maxs[b] = max(band_maxs[b], np.max(data[b]))
 
     print("\nPer-band stats:")
     for i, (mn, mx) in enumerate(zip(band_mins, band_maxs)):
@@ -69,22 +73,26 @@ def get_band_min_max(dir_path):
     return band_mins, band_maxs
 
 def get_band_percentiles(dir_path, percentiles=[1, 5, 50, 95, 99]):
+    """
+    Compute global per-band percentiles across all samples
+    """
     dir_path = Path(dir_path)
 
     band_values = None
 
+    # iterate over all tif in the dir
     for tif_path in dir_path.glob("*.tif"):
         with rasterio.open(tif_path) as src:
             data = src.read()  # [C, H, W]
 
+            # init one value list per band on first file
             if band_values is None:
                 band_values = [[] for _ in range(data.shape[0])]
 
             for b in range(data.shape[0]):
-                # flatten and remove NaNs
+                # flatten
                 vals = data[b].ravel()
-                vals = vals[~np.isnan(vals)]
-
+                # pool this file's values into the band
                 band_values[b].append(vals)
 
     print("\nPer-band percentiles:")
@@ -92,7 +100,8 @@ def get_band_percentiles(dir_path, percentiles=[1, 5, 50, 95, 99]):
     results = {}
 
     for b, vals_list in enumerate(band_values):
-        all_vals = np.concatenate(vals_list)
+        # combine all files' values for this band
+        all_vals = np.concatenate(vals_list) 
 
         p_vals = np.percentile(all_vals, percentiles)
 
@@ -105,6 +114,10 @@ def get_band_percentiles(dir_path, percentiles=[1, 5, 50, 95, 99]):
     return results
 
 def get_max_time_difference_with_row(csv_path, sentinel_timestamp):
+    """
+    Find the row with the largest time gap between the flood map date and the
+    Sentinel acquisition timestamp.
+    """
     df = pd.read_csv(csv_path)
 
     df["floodmap_date"] = pd.to_datetime(df["floodmap_date"], dayfirst=True, errors="coerce")

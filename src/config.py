@@ -12,7 +12,7 @@ class CFG:
 
     DRIVE_ROOT: Path = Path("/content/drive/MyDrive")
 
-        # max allowed gap between S2 and S1 acquisition, in hours
+    # max allowed gap between S2 and S1 acquisition, in hours
     S2_TIME_THRESHOLD_HOURS: int = 72
     S1_TIME_THRESHOLD_HOURS: int = 24
 
@@ -52,12 +52,12 @@ class CFG:
     # ordered (tag_name, step_fn) pairs; tag_name is persisted into the GeoTIFF
     # "steps" tag so reruns can resume from the last completed step
     S1_PREPROCESSING_STEPS: list = field(default_factory=lambda: [
+        ("remove_nana", remove_nana),
         ("remove_angle", remove_angle),
         ("crop", crop),
         ("lee_filter", lee_filter_per_band),
         ("clip_bands", clip_bands),
         ("normalise", normalise_per_band),
-        ("remove_nana", remove_nana),
     ])
     S2_PREPROCESSING_STEPS: list = field(default_factory=lambda: [
         ("remove_nana", remove_nana),

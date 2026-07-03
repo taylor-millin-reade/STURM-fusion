@@ -10,10 +10,7 @@ cfg.S2_PREPROCESSING_STEPS.
 
 def _cleanup_orphaned_temp_files(dir_path):
     """
-    Remove temp files left behind by a run that crashed mid-write. The
-    original .tif is only ever replaced after a full successful write, so
-    if a temp file exists, the real file is guaranteed to still be there -
-    it's always safe to delete these.
+    Remove temp files from previous runs that were interrupted, leaving orphaned .tmp files.
     """
     for pattern in ("*.tif.tmp", "*.tmp.tif"):  # *.tmp.tif covers old runs
         for stale_path in dir_path.glob(pattern):
@@ -21,8 +18,9 @@ def _cleanup_orphaned_temp_files(dir_path):
             stale_path.unlink()
 
 def _run_preprocessing_steps(tif_path, cfg, steps, pipeline_name):
-    # Note: ".tif.tmp", not ".tmp.tif" - it must NOT end in ".tif", or it
-    # would be picked up again by "*.tif" globs if a run is interrupted.
+    """
+    Run preprocessing steps on a single .tif file, writing a new file if any steps were applied.
+    """
     temp_path = tif_path.with_name(tif_path.name + ".tmp")
 
     with rasterio.open(tif_path) as src:
@@ -73,6 +71,9 @@ def preprocessing_s2_steps(tif_path, cfg):
     return _run_preprocessing_steps(tif_path, cfg, cfg.S2_PREPROCESSING_STEPS, "s2_preprocessing")
 
 def preprocessing_s1_pipeline(cfg):
+    """
+    Run the S1 preprocessing pipeline on all .tif files in cfg.NEW_S1_PATH.
+    """
     dir_path = cfg.NEW_S1_PATH
 
     _cleanup_orphaned_temp_files(dir_path)
@@ -89,6 +90,9 @@ def preprocessing_s1_pipeline(cfg):
     print("S1 preprocessing pipeline complete")
 
 def preprocessing_s2_pipeline(cfg):
+    """
+    Run the S2 preprocessing pipeline on all .tif files in cfg.NEW_S2_PATH.
+    """
     dir_path = cfg.NEW_S2_PATH
 
     _cleanup_orphaned_temp_files(dir_path)

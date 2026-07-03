@@ -4,15 +4,19 @@ import pandas as pd
 from pathlib import Path
 
 def save_dataframe_to_csv(df, output_path):
-    # ensure directory exists
+    """
+    Save a pandas DataFrame to a CSV file, ensuring the directory exists.
+    """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
-    # save (overwrite by default)
     df.to_csv(output_path, index=False)
     
     print(f"CSV saved to: {output_path}")
 
 def create_dataset_structure(cfg):
+    """
+    Create the folder structure for the dataset based on the configuration.
+    """
     paths = [
         # roots
         cfg.STURM_FLOOD,
@@ -72,6 +76,9 @@ def copy_matching_files(csv_path, src_dir, dst_dir, tile_col="tile_id"):
     print(f"Missing source: {missing}")
 
 def clear_export_folder(cfg):
+    """
+    Clear all files in the export folder specified in the configuration.
+    """
     export_path = Path(cfg.EXPORT_PATH)
 
     if not export_path.exists():
@@ -91,7 +98,6 @@ def clear_export_folder(cfg):
             if f.is_file():
                 f.unlink()
             elif f.is_dir():
-                import shutil
                 shutil.rmtree(f)
 
             print(f"Deleted: {f.name}")
@@ -102,11 +108,12 @@ def clear_export_folder(cfg):
     print("Export folder cleared")
 
 def tiff_exists(file, cfg):
-
+    """
+    Check if a .tif file exists in either the export folder or the S1 folder.
+    """
     export_dir = cfg.EXPORT_PATH
     s1_dir = cfg.NEW_S1_PATH
 
-    # Remove .tif if present, then re-add (safe)
 
     export_file = export_dir / file
     s1_file = s1_dir / file
@@ -116,17 +123,8 @@ def tiff_exists(file, cfg):
 def zip_dataset(cfg):
     """
     Zips the existing Dataset folder directly into ROOT.
-
-    Assumes structure already exists:
-    ROOT/
-        Dataset/
-            S1/
-            S2/
-            metadata/
-            floodmaps/
     """
 
-    root = Path(cfg.ROOT)
     dataset_dir = cfg.NEW_DATA_PATH
     zip_path = cfg.NEW_ZIP_PATH
 
@@ -136,10 +134,10 @@ def zip_dataset(cfg):
     print("Zipping dataset directly...")
 
     shutil.make_archive(
-        str(zip_path).replace(".zip", ""),  # base name
+        str(zip_path).replace(".zip", ""),  
         'zip',
-        root_dir=dataset_dir.parent,        # ROOT
-        base_dir="Dataset"                  # include Dataset folder
+        root_dir=dataset_dir.parent,        
+        base_dir="Dataset"                  
     )
 
     print(f"Dataset zipped at: {zip_path}")
@@ -147,5 +145,8 @@ def zip_dataset(cfg):
     return zip_path
 
 def count_metadata_samples(csv_file):
+    """
+    Count the number of samples in the metadata CSV file.
+    """
     df = pd.read_csv(csv_file)
     return len(df)
