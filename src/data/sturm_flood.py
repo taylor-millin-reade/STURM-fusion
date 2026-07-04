@@ -1,5 +1,10 @@
 import zipfile
 import os
+import wget
+
+def bar_progress(current, total, width=80):
+    progress = current / total * 100
+    print(f"\rDownloading: {progress:.1f}% [{current}/{total} bytes]", end="")
 
 def download_and_extract(cfg):
     """
@@ -15,7 +20,7 @@ def download_and_extract(cfg):
     if not zip_path.exists() and not data_path.exists():
         print("Downloading dataset...")
         zip_path.parent.mkdir(parents=True, exist_ok=True)
-        os.system(f"wget -O '{zip_path}' '{cfg.OLD_ZIP_URL}'")
+        wget.download(cfg.OLD_ZIP_URL, out=str(zip_path), bar=bar_progress)
 
         if not zip_path.exists() or zip_path.stat().st_size == 0:
             raise RuntimeError(
