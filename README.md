@@ -13,6 +13,9 @@ The entire pipeline runs from one notebook, [Create_Dataset.ipynb](Create_Datase
 match S1↔S2, export S1 from GEE, assemble, preprocess, validate, push to Hugging Face.
 
 ---
+[![HF Dataset](https://img.shields.io/badge/🤗%20Hugging%20Face-STURM--Fusion--24-yellow)](https://huggingface.co/datasets/taylor-millin-reade/STURM-Fusion-24)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+---
 
 ## 1. Requirements
 
