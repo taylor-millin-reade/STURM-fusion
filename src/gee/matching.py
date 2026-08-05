@@ -57,9 +57,15 @@ def check_s1_covers_aoi(image, aoi, threshold=0.999, verbose=False):
 
 def is_s1_coverage_valid(image, aoi, scale=10, threshold=0.1):
     """
-    Returns True if BOTH bands have less than threshold masked pixels.
+    Returns True if both bands have less than threshold masked pixels.
 
-    threshold = 0.05 → allows up to 5% masked pixels
+    threshold = 0.05 allows up to 5% masked pixels
+    """
+
+    """
+    Function to replace NaN check later in the pipeline.
+
+    Currently unused as may create a different dataset than the one used for training.
     """
 
     # Get mask (1 = valid, 0 = masked)
