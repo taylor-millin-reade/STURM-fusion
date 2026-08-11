@@ -74,10 +74,6 @@ in the Setup cell (§4), which becomes `cfg.GEE_PROJECT`.
    the numeric project number) into the Setup cell's `gee_project` variable (§4). That's
    the value the pipeline authenticates and exports with.
 
-> Registration is usually approved instantly for noncommercial use, but can occasionally
-> take a day or two. You need a Cloud project attached to use Earth Engine at all — there
-> is no account-only mode anymore.
-
 ---
 
 ## 3. Repository layout
@@ -220,40 +216,3 @@ Each config also exposes derived `Path` properties for every dataset location
 etc.) — use these instead of hardcoding paths.
 
 ---
-
-## 7. End-to-end checklist
-
-1. Set up a Google Earth Engine account and Cloud project (§2).
-2. Run the **Setup** cell — Drive will mount, and the repo will be cloned if
-   `clone_repo=True`.
-3. Run **create dataset structure** and **download + extract** STURM-Flood.
-4. Set `gee_export=True` and run the **match + export** cell. Re-run later with
-   `gee_export=False` while waiting for GEE tasks to finish, then `True` again once
-   they're done (or `cancle_gee_tasks=True` to cancel a stuck batch).
-5. Run the **assemble + preprocess** loop until `validate_files(cfg)` reports complete.
-6. Run **remove bad NaN files**.
-7. Run the **inspection** cell as a final sanity check.
-8. Set `push_to_HF=True` and run the final cell to publish the dataset.
-
----
-
-## 8. Key implementation notes
-
-- **Resumable preprocessing**: each step in `S1_PREPROCESSING_STEPS`/
-  `S2_PREPROCESSING_STEPS` writes its tag name into the GeoTIFF's `steps` metadata tag
-  once applied, so an interrupted run picks up exactly where it left off rather than
-  reprocessing from scratch.
-- **Crash safety**: preprocessing writes to a `*.tif.tmp` file and only swaps it in
-  (`os.replace`) after a full successful write — and any orphaned temp file from a
-  prior crash is automatically deleted at the start of the next run, since the original
-  `.tif` is guaranteed to still be present whenever a temp file is.
-- **GEE exports require Drive**: see §1 — there's no way around mounting Drive, because
-  `Export.image.toDrive` is the only export destination GEE offers that this pipeline
-  can read back from.
-- **Order matters in `S1_PREPROCESSING_STEPS`**: `remove_nana` runs *first*, before the
-  Lee filter — the Lee filter is not NaN-safe, and a single real NaN left in the data
-  would otherwise poison its global noise-variance estimate and turn an entire band to
-  NaN, not just the area around the bad pixel.
-- **HF push needs a token**: `push_to_HF=True` reads `HF_TOKEN` from Colab's secrets
-  manager (`google.colab.userdata`) — set that up in Colab's secrets panel before
-  pushing.
